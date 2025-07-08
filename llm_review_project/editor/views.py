@@ -139,6 +139,15 @@ def main_editor_view(request, result_id=None):
     current_result = None
     if result_id:
         current_result = get_object_or_404(InferenceResult, pk=result_id)
+
+    for res in all_results:
+        if res.last_modified_by:
+            res.user_color = get_user_color(res.last_modified_by.username)
+        else:
+            res.user_color = ''
+
+    if current_result and current_result.last_modified_by:
+        current_result.user_color = get_user_color(current_result.last_modified_by.username)
     
     context = {
         'all_results': all_results,

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+{% load diff_tags %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
         #image-modal { transition: opacity 0.3s ease-in-out; }
         #modal-image { transition: transform 0.3s ease-in-out; transform: scale(0.95); }
         #image-modal.visible #modal-image { transform: scale(1); }
+        .diff-added { font-weight: bold; }
     </style>
 </head>
 <body class="bg-slate-100">
@@ -86,6 +88,14 @@
                         <strong>환자 ID:</strong> {{ current_result.patient_id }}
                         <strong class="ml-4">솔루션:</strong> {{ current_result.solution_name }}
                         {% if current_result.last_modified_by %}
+                            <span class="ml-4"><strong>수정자:</strong> <span class="{{ current_result.user_color }}">{{ current_result.last_modified_by.username }}</span></span>
+                        {% endif %}
+                    </p>
+                    {% if current_result.edited_text != current_result.original_text %}
+                    <div class="mt-2 p-2 bg-slate-50 rounded">
+                        <pre class="whitespace-pre-wrap text-sm">{% diff_highlight current_result.edited_text current_result.original_text current_result.user_color %}</pre>
+                    </div>
+                    {% endif %}
                         <span class="ml-4"><strong>수정자:</strong> {{ current_result.last_modified_by.username }}</span>
                         {% endif %}
                     </p>
@@ -176,6 +186,7 @@
                     <p class="text-sm text-slate-500">
                         {{ result.created_at|date:"Y.m.d H:i" }}
                         {% if result.last_modified_by %}
+                            · <span class="{{ result.user_color }}">{{ result.last_modified_by.username }}</span>
                             · {{ result.last_modified_by.username }}
                         {% endif %}
                     </p>
@@ -212,6 +223,7 @@
         });
         solutionSelect.dispatchEvent(new Event('change'));
 
+
         // 수정된 필드 색상 표시 로직
         const userColor = "{{ user_color }}";
         const editableFields = document.querySelectorAll('.editable-field');
@@ -225,6 +237,7 @@
                 }
             });
         });
+
         
         // 이미지 확대/축소 로직
         const modal = document.getElementById('image-modal');
