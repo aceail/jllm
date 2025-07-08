@@ -143,7 +143,7 @@ def _render_json(obj, colors, path="", indent=0):
             rendered = _render_json(val, colors, sub_path, indent + 2)
             comma = "," if idx < len(keys) - 1 else ""
             lines.append(f"{space}  \"{escape(key)}\": {rendered}{comma}")
-        lines.append(f"{space}}")
+        lines.append(f"{space}}}")
         return "\n".join(lines)
     elif isinstance(obj, list):
         lines = ["["]
