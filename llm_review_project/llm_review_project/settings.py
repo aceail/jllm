@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,7 +55,7 @@ ROOT_URLCONF = 'llm_review_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # 프로젝트 최상위의 'templates' 폴더를 가리킴
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # 이 줄을 확인하거나 추가합니다.
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,8 +123,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+LOGIN_REDIRECT_URL = '/' # 로그인 성공 후 홈('/')으로 이동
+LOGOUT_REDIRECT_URL = '/' # 로그아웃 성공 후 홈('/')으로 이동 (선택 사항)
+LOGIN_URL = '/accounts/login/' # 로그인 페이지 URL
 
-LOGIN_REDIRECT_URL = '/' # 메인 페이지로 이동
-LOGIN_URL = '/accounts/login/' # 이 줄을 추가하세요.
+
+# 업로드된 미디어 파일들을 관리할 경로
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

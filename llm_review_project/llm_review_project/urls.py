@@ -1,22 +1,23 @@
-# llm_review_project/llm_review_project/urls.py
+# ~/jllm/llm_review_project/llm_review_project/urls.py
 
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
+from .views import CustomLogoutView, home_view # home_view를 임포트합니다.
 from django.conf import settings
 from django.conf.urls.static import static
 
-# ❗️ 이 함수를 새로 import 해야 합니다.
-from .views import CustomLogoutView 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('editor.urls')),
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    
-    # ❗️ 아래 코드로 교체해 주세요.
-    # GET 요청을 허용하는 커스텀 LogoutView를 사용합니다.
-    path('accounts/logout/', CustomLogoutView.as_view(), name='logout'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    # --- 루트 URL 패턴 추가 ---
+    path('', home_view, name='home'), # 이 줄을 추가합니다.
+    # --- 여기까지 루트 URL 패턴 추가 ---
+
+    # 다른 URL 패턴들...
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

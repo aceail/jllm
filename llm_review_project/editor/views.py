@@ -2,20 +2,7 @@ import requests
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import InferenceResult, InferenceImage
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required # 이 줄을 추가하세요.
 
-# llm_review_project/llm_review_project/views.py
-
-from django.contrib.auth.views import LogoutView
-from django.shortcuts import redirect
-
-class CustomLogoutView(LogoutView):
-    def get(self, request, *args, **kwargs):
-        # LogoutView의 post 메서드를 호출하여 로그아웃 처리
-        super().post(request, *args, **kwargs)
-        # 로그아웃 후 로그인 페이지로 리디렉션
-        return redirect('login')
 
 
 VLLM_API_URL = "http://localhost:8001/v1/completions" 
