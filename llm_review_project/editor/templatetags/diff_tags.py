@@ -3,7 +3,18 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 import difflib
 import json
+USER_COLORS = [
+    "text-red-600",
+    "text-blue-600",
+    "text-green-600",
+    "text-purple-600",
+    "text-orange-600",
+]
 
+
+def get_user_color(username: str) -> str:
+    """Return a stable color class for the given username."""
+    return USER_COLORS[hash(username) % len(USER_COLORS)]
 
 
 register = template.Library()
@@ -143,7 +154,7 @@ def _render_json(obj, colors, path="", indent=0):
             rendered = _render_json(val, colors, sub_path, indent + 2)
             comma = "," if idx < len(keys) - 1 else ""
             lines.append(f"{space}  \"{escape(key)}\": {rendered}{comma}")
-        lines.append(f"{space}}")
+        lines.append(f"{space}")
         return "\n".join(lines)
     elif isinstance(obj, list):
         lines = ["["]
