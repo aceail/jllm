@@ -29,3 +29,5 @@ build/
 dist/
 *.egg-info/
 *.bak
+llm_review_project/editor/templatetags/__pycache__/diff_tags.cpython-310.pyc
+llm_review_project/db.sqlite3
