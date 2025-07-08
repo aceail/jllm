@@ -26,6 +26,13 @@ class InferenceResult(models.Model):
     def get_display_text(self):
         return self.edited_text if self.edited_text else self.original_text
 
+    def get_editors(self):
+        """Return a list of usernames who edited this result."""
+        names = list(self.history.exclude(editor=None).values_list('editor__username', flat=True).distinct())
+        if self.last_modified_by and self.last_modified_by.username not in names:
+            names.append(self.last_modified_by.username)
+        return names
+
 # 이미지를 저장할 별도의 모델 생성
 class InferenceImage(models.Model):
     inference_result = models.ForeignKey(InferenceResult, related_name='images', on_delete=models.CASCADE)
