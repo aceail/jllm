@@ -1,7 +1,9 @@
 from django import template
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
 import difflib
 import json
+
 
 register = template.Library()
 
@@ -22,6 +24,20 @@ def diff_highlight(new_text, old_text='', color_class='text-red-600'):
     """
     if not old_text or new_text.strip() == old_text.strip():
 
+        return mark_safe(new_text)
+
+    # Try JSON normalization first to avoid false positives caused by
+    # formatting differences or key ordering.
+    try:
+        new_obj = json.loads(new_text)
+        old_obj = json.loads(old_text)
+        new_normalized = json.dumps(new_obj, ensure_ascii=False, sort_keys=True)
+        old_normalized = json.dumps(old_obj, ensure_ascii=False, sort_keys=True)
+    except Exception:
+        new_normalized = ''.join(new_text.split())
+        old_normalized = ''.join(old_text.split())
+
+    if new_normalized == old_normalized:
         return mark_safe(new_text)
 
     # Try JSON normalization first to avoid false positives caused by
@@ -82,3 +98,4 @@ def json_equal(new_text, old_text=''):
         old_normalized = ''.join(old_text.split())
 
     return new_normalized == old_normalized
+
