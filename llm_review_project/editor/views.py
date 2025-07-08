@@ -1,6 +1,9 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.core.files.uploadedfile import SimpleUploadedFile
+import pandas as pd
+
 from .models import InferenceResult, EditHistory
 from .utils import (
     get_user_color,
@@ -8,6 +11,7 @@ from .utils import (
     PROMPT_CONFIG,
     perform_inference,
     clean_json_keys,
+    dicom_to_png,
 )
 
 
@@ -108,4 +112,51 @@ def delete_result(request, result_id):
     result = get_object_or_404(InferenceResult, pk=result_id)
     if request.method == 'POST':
         result.delete()
+    return redirect('editor:main_editor')
+
+
+@login_required
+def upload_excel(request):
+    """Handle Excel uploads for batch inference sequentially."""
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+        for chunk in pd.read_excel(excel_file, chunksize=1):
+            row = chunk.iloc[0]
+            solution_name = row.get('솔루샨 종류', 'default')
+            patient_id = row.get('환자 ID', '')
+            sex = row.get('성별', '')
+            age = row.get('나이', '')
+            exam_time = row.get('검사 일시', '')
+            ai_json = row.get('AI 분석 결과 (JSON)', '{}')
+            path_list = str(row.get('파일경로 list', '')).split(';')
+
+            images = []
+            for p in path_list:
+                p = p.strip()
+                if not p:
+                    continue
+                try:
+                    with open(p, 'rb') as f:
+                        if p.lower().endswith('.dcm'):
+                            img = dicom_to_png(f)
+                            if img:
+                                images.append(img)
+                        else:
+                            images.append(SimpleUploadedFile(p.split('/')[-1], f.read()))
+                except FileNotFoundError:
+                    print(f'Missing file: {p}')
+
+            perform_inference(
+                user=request.user,
+                solution_name=solution_name,
+                patient_id=patient_id,
+                sex=sex,
+                age=age,
+                exam_time=exam_time,
+                ai_json=ai_json,
+                images=images,
+            )
+
+        return redirect('editor:main_editor')
+
     return redirect('editor:main_editor')
