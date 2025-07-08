@@ -58,7 +58,7 @@
                         </div>
                         <div>
                             <label for="exam_time" class="block text-sm font-medium text-slate-600">검사 일시</label>
-                            <input type="text" name="exam_time" id="exam_time" placeholder="YYYY-MM-DDTHH:MM" class="mt-1 block w-full p-2 border rounded-md" />
+                            <input type="datetime-local" name="exam_time" id="exam_time" class="mt-1 block w-full p-2 border rounded-md" />
                         </div>
                     </div>
                     <div>
@@ -124,7 +124,7 @@
                             <div><label class="block text-sm font-medium text-gray-500">성별</label><input type="text" name="성별" value="{{ current_result.parsed_result.성별|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
                             <div><label class="block text-sm font-medium text-gray-500">나이</label><input type="number" name="나이" value="{{ current_result.parsed_result.나이|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
                             <div><label class="block text-sm font-medium text-gray-500">영상 종류</label><input type="text" name="영상_종류" value="{{ current_result.parsed_result.영상_종류|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
-                            <div class="lg:col-span-2"><label class="block text-sm font-medium text-gray-500">검사 일시</label><input type="text" name="검사_일시" value="{{ current_result.parsed_result.검사_일시|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="lg:col-span-2"><label class="block text-sm font-medium text-gray-500">검사 일시</label><input type="datetime-local" name="검사_일시" value="{{ current_result.parsed_result.검사_일시|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
                         </div>
                     </fieldset>
                     
