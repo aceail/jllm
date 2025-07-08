@@ -231,10 +231,13 @@ def create_inference(request):
             )
 
             for uploaded_file in converted_files:
-                InferenceImage.objects.create(
-                    inference_result=new_result,
-                    image=uploaded_file,
-                )
+                try:
+                    InferenceImage.objects.create(
+                        inference_result=new_result,
+                        image=uploaded_file,
+                    )
+                except Exception as img_exc:
+                    print(f"Image save failed: {img_exc}")
 
 
             return redirect('editor:editor_with_id', result_id=new_result.id)

@@ -24,16 +24,33 @@ def dicom_to_png(uploaded_file):
         import io
         from django.core.files.uploadedfile import SimpleUploadedFile
         import pydicom
+        from pydicom.pixel_data_handlers.util import apply_voi_lut
         from PIL import Image
 
         ds = pydicom.dcmread(uploaded_file, force=True)
-        pixel_array = ds.pixel_array
 
-        pixel_array = pixel_array.astype('float32')
+        if "PixelData" not in ds:
+            raise ValueError("No pixel data found")
+
+        pixel_array = ds.pixel_array
+        if pixel_array.ndim > 2:
+            pixel_array = pixel_array[0]
+
+        # apply windowing if available
+        try:
+            pixel_array = apply_voi_lut(pixel_array, ds)
+        except Exception:
+            pass
+
+        pixel_array = pixel_array.astype("float32")
         pixel_array -= pixel_array.min()
         if pixel_array.max() > 0:
             pixel_array = pixel_array / pixel_array.max() * 255.0
-        image = Image.fromarray(pixel_array.astype('uint8'))
+
+        if getattr(ds, "PhotometricInterpretation", "MONOCHROME2") == "MONOCHROME1":
+            pixel_array = 255 - pixel_array
+
+        image = Image.fromarray(pixel_array.astype("uint8"))
 
         buf = io.BytesIO()
         image.save(buf, format='PNG')
