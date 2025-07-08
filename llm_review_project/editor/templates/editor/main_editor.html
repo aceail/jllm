@@ -91,7 +91,7 @@
                             <span class="ml-4"><strong>수정자:</strong> <span class="{{ current_result.user_color }}">{{ current_result.last_modified_by.username }}</span></span>
                         {% endif %}
                     </p>
-                    {% if current_result.edited_text != current_result.original_text %}
+                    {% if not current_result.edited_text|json_equal:current_result.original_text %}
                     <div class="mt-2 p-2 bg-slate-50 rounded">
                         <pre class="whitespace-pre-wrap text-sm">{% diff_highlight current_result.edited_text current_result.original_text current_result.user_color %}</pre>
                     </div>
@@ -163,7 +163,7 @@
     </div>
 
     <!-- Right Panel -->
-<div class="w-1/3 max-w-sm bg-white border-l h-full flex flex-col">
+<div class="w-1/3 max-w-sm bg-white border-l h-full flex flex-col flex-shrink-0">
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-xl font-bold text-slate-800">추론 기록</h2>
             <div class="flex items-center space-x-2"> {# 이 div를 추가하여 새 추론과 로그아웃 버튼을 그룹화합니다. #}
@@ -180,7 +180,7 @@
             {% for result in all_results %}
             <a href="{% url 'editor:editor_with_id' result.id %}" class="block">
                 <li class="p-4 border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
-                    <p class="font-semibold text-slate-700 truncate">{{ result.patient_id }} - {{ result.solution_name }}</p>
+                    <p class="font-semibold text-slate-700 truncate">{{ result.id }} - {{ result.solution_name }} ({{ result.patient_id }})</p>
                     <p class="text-sm text-slate-500">
                         {{ result.created_at|date:"Y.m.d H:i" }}
                         {% if result.last_modified_by %}
