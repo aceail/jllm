@@ -34,3 +34,18 @@ class InferenceImage(models.Model):
 
     def __str__(self):
         return f"Image for result {self.inference_result.id}"
+
+
+class EditHistory(models.Model):
+    """Track changes to an InferenceResult so each user's edits can be highlighted."""
+
+    result = models.ForeignKey(InferenceResult, related_name='history', on_delete=models.CASCADE)
+    editor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    edited_data = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"History for {self.result_id} by {self.editor}"
