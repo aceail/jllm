@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('editor/', include('editor.urls')),
 
     # --- 루트 URL 패턴 추가 ---
     path('', home_view, name='home'), # 이 줄을 추가합니다.

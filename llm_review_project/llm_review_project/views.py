@@ -11,7 +11,7 @@ class CustomLogoutView(LogoutView):
         response = super().dispatch(request, *args, **kwargs)
         return response
 
-# --- 로그인 뷰 추가: 이미 로그인된 사용자는 홈으로 리다이렉트 ---
+# --- 로그인 뷰 추가: 이미 로그인된 사용자는 에디터로 리다이렉트 ---
 class CustomLoginView(LoginView):
     """사용자 로그인을 처리하는 뷰."""
 
@@ -19,11 +19,13 @@ class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
 
     def get_success_url(self):
-        return reverse_lazy('home')
+        return reverse_lazy('editor:main_editor')
 
 # --- 새로운 뷰 추가: 홈페이지 뷰 ---
 def home_view(request):
     """
     홈페이지를 렌더링하는 뷰.
     """
+    if request.user.is_authenticated:
+        return redirect('editor:main_editor')
     return render(request, 'home.html') # 'home.html' 템플릿을 렌더링합니다.
