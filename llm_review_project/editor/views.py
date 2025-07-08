@@ -161,11 +161,14 @@ def create_inference(request):
         
         user_input_data = ""
         db_prompt = ""
+        uploaded_files = request.FILES.getlist('images')
 
         if config_key == 'medical' and user_prompt_template:
             solution_data = SOLUTIONS_DATA.get(solution_name, {})
             solution_base = solution_data.get('base', '')
             solution_info = solution_data.get('info', '')
+
+            non_dicom_files = [f for f in uploaded_files if not f.name.lower().endswith('.dcm')]
 
             user_input_data = user_prompt_template.format(
                 solution_name=solution_name,
@@ -176,7 +179,7 @@ def create_inference(request):
                 age=request.POST.get('age', ''),
                 exam_time=request.POST.get('exam_time', ''),
                 ai_json=request.POST.get('ai_json_input', '{}'),
-                image_count=len(request.FILES.getlist('images'))
+                image_count=len(non_dicom_files)
             )
             db_prompt = request.POST.get('ai_json_input', '상세 입력')
         else:
@@ -220,7 +223,7 @@ def create_inference(request):
                 edited_data=parsed_data,
             )
 
-            for uploaded_file in request.FILES.getlist('images'):
+            for uploaded_file in uploaded_files:
                 if uploaded_file.name.lower().endswith('.dcm'):
                     from .utils import dicom_to_png
                     png_file = dicom_to_png(uploaded_file)
