@@ -16,10 +16,9 @@ def dicom_to_png(uploaded_file):
 
     """Convert an uploaded DICOM file to a PNG ``SimpleUploadedFile``.
 
-    This helper is used when a ``.dcm`` file is uploaded so the image can be
-    stored and displayed like any other attachment.  The caller is responsible
-    for ensuring ``pydicom`` and ``Pillow`` are installed. If conversion fails,
-    ``None`` is returned.
+    ``pydicom`` and ``Pillow`` must be installed. If they are missing or an
+    error occurs during conversion, ``None`` is returned so the caller can
+    gracefully skip the file.
     """
     try:
         import io
@@ -27,10 +26,9 @@ def dicom_to_png(uploaded_file):
         import pydicom
         from PIL import Image
 
-        ds = pydicom.dcmread(uploaded_file)
+        ds = pydicom.dcmread(uploaded_file, force=True)
         pixel_array = ds.pixel_array
 
-        # normalise pixel data to 0-255
         pixel_array = pixel_array.astype('float32')
         pixel_array -= pixel_array.min()
         if pixel_array.max() > 0:
@@ -45,5 +43,8 @@ def dicom_to_png(uploaded_file):
             buf.read(),
             content_type='image/png'
         )
-    except Exception:
+    except Exception as exc:
+        # If required libraries are missing or any conversion error occurs,
+        # log the issue and return ``None`` so the caller can ignore this file.
+        print(f"DICOM conversion failed: {exc}")
         return None
