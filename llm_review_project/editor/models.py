@@ -27,10 +27,20 @@ class InferenceResult(models.Model):
         return self.edited_text if self.edited_text else self.original_text
 
     def get_editors(self):
-        """Return a list of usernames who edited this result."""
-        names = list(self.history.exclude(editor=None).values_list('editor__username', flat=True).distinct())
-        if self.last_modified_by and self.last_modified_by.username not in names:
+        """Return a list of unique usernames who edited this result in the
+        order of their first edit."""
+        names = []
+        seen = set()
+
+        for h in self.history.exclude(editor=None).select_related('editor').order_by('created_at'):
+            username = h.editor.username
+            if username not in seen:
+                seen.add(username)
+                names.append(username)
+
+        if self.last_modified_by and self.last_modified_by.username not in seen:
             names.append(self.last_modified_by.username)
+
         return names
 
 # 이미지를 저장할 별도의 모델 생성

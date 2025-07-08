@@ -21,8 +21,8 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f'User {user} not found'))
             return
 
-        df = pd.read_excel(excel_path)
-        for _, row in df.iterrows():
+        for chunk in pd.read_excel(excel_path, chunksize=1):
+            row = chunk.iloc[0]
             solution_name = row.get('솔루샨 종류', 'default')
             patient_id = row.get('환자 ID', '')
             sex = row.get('성별', '')
