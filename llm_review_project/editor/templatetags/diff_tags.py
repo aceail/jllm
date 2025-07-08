@@ -8,7 +8,6 @@ register = template.Library()
 @register.simple_tag
 def diff_highlight(new_text, old_text='', color_class='text-red-600'):
     """Return HTML diff highlighting additions with the given color.
-
     Leading/trailing or internal whitespace differences can occur when
     converting JSON to strings. To avoid false highlights, compare the two
     strings after removing all whitespace characters. If they match, return
@@ -16,6 +15,12 @@ def diff_highlight(new_text, old_text='', color_class='text-red-600'):
     """
 
     if not old_text:
+
+    If the texts are equal after stripping whitespace, return the new text
+    without highlighting.
+    """
+    if not old_text or new_text.strip() == old_text.strip():
+
         return mark_safe(new_text)
 
     # Try JSON normalization first to avoid false positives caused by
