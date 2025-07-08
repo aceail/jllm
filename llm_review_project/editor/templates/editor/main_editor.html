@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 리뷰 에디터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #image-modal { transition: opacity 0.3s ease-in-out; }
+        #modal-image { transition: transform 0.3s ease-in-out; transform: scale(0.95); }
+        #image-modal.visible #modal-image { transform: scale(1); }
+    </style>
+</head>
+<body class="bg-slate-100">
+<div class="flex h-screen">
+    <!-- Left Panel -->
+    <div class="flex-grow flex flex-col p-4 md:p-6 space-y-6 overflow-y-auto">
+        <header>
+            <h1 class="text-3xl font-bold text-slate-800">LLM 결과 리뷰 및 수정</h1>
+            <p class="text-slate-600">vLLM 추론 결과를 확인하고 수정합니다.</p>
+        </header>
+
+        <!-- Input Form (current_result가 없을 때만 보임) -->
+        <div id="input-form-container" class="bg-white p-4 rounded-lg shadow-md {% if current_result %}hidden{% endif %}">
+            <form action="{% url 'editor:create_inference' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="solution" class="block text-lg font-semibold mb-2 text-slate-700">솔루션 선택</label>
+                    <select name="solution" id="solution" class="w-full p-3 border border-slate-300 rounded-md">
+                        <option value="default">일반 (기본)</option>
+                        {% for name, data in solutions_data.items %}
+                        <option value="{{ name }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="default-prompt-area">
+                    <label for="prompt" class="block text-lg font-semibold mb-2 text-slate-700">사용자 입력</label>
+                    <textarea name="prompt" id="prompt" rows="5" class="w-full p-3 border border-slate-300 rounded-md"></textarea>
+                </div>
+                
+                <div id="stroke-analysis-area" class="hidden space-y-4">
+                    <h2 class="text-lg font-semibold text-slate-700">환자 정보 및 AI 결과 입력</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="patient_id" class="block text-sm font-medium text-slate-600">환자 ID</label>
+                            <input type="text" name="patient_id" class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="sex" class="block text-sm font-medium text-slate-600">성별</label>
+                            <input type="text" name="sex" class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="age" class="block text-sm font-medium text-slate-600">나이</label>
+                            <input type="number" name="age" class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label for="exam_time" class="block text-sm font-medium text-slate-600">검사 일시</label>
+                            <input type="datetime-local" name="exam_time" id="exam_time" class="mt-1 block w-full p-2 border rounded-md">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="ai_json_input" class="block text-sm font-medium text-slate-600">AI 분석 결과 (JSON)</label>
+                        <textarea name="ai_json_input" id="ai_json_input" rows="6" class="mt-1 block w-full p-3 font-mono text-sm border rounded-md"></textarea>
+                    </div>
+                    <div>
+                        <label for="images" class="block text-sm font-medium text-slate-600">이미지 첨부</label>
+                        <input type="file" name="images" id="images" multiple class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                    </div>
+                </div>
+
+                <div class="text-right mt-4">
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-md hover:bg-blue-700">추론 실행</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Editor Area -->
+        <div class="flex-grow bg-white p-4 rounded-lg shadow-md flex flex-col">
+            {% if current_result %}
+            <form id="edit-form" action="{% url 'editor:save_edit' current_result.id %}" method="post" class="flex-grow flex flex-col">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">결과 보기 및 수정 (ID: {{ current_result.id }})</h2>
+                    <p class="text-sm text-slate-500 mt-1"><strong>입력 요약:</strong> {{ current_result.prompt|truncatewords:20 }}</p>
+                </div>
+                
+                {% if current_result.images.all %}
+                <div class="mb-4 p-4 bg-slate-50 rounded-lg border">
+                    <h3 class="font-semibold text-lg mb-2">첨부된 이미지</h3>
+                    <div class="flex flex-wrap gap-4">
+                    {% for img in current_result.images.all %}
+                        <div class="text-center">
+                            <img src="{{ img.image.url }}" alt="{{ img.image.name }}" class="zoomable-image h-32 w-32 object-cover rounded-md shadow-md cursor-pointer hover:opacity-80 transition-opacity">
+                            <p class="text-xs text-slate-500 mt-1 truncate w-32">{{ img.image.name|cut:"inference_images/" }}</p>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if current_result.parsed_result %}
+                <div class="mb-4 p-4 bg-slate-50 rounded-lg border space-y-4">
+                    <h3 class="font-semibold text-lg mb-2">구조화된 결과 수정</h3>
+                    
+                    <fieldset class="border-t border-slate-200 pt-4">
+                        <legend class="text-base font-semibold text-slate-800">환자 정보</legend>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end mt-2">
+                            <div><label class="block text-sm font-medium text-gray-500">환자ID</label><input type="text" name="환자ID" value="{{ current_result.parsed_result.환자ID|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div><label class="block text-sm font-medium text-gray-500">성별</label><input type="text" name="성별" value="{{ current_result.parsed_result.성별|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div><label class="block text-sm font-medium text-gray-500">나이</label><input type="number" name="나이" value="{{ current_result.parsed_result.나이|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div><label class="block text-sm font-medium text-gray-500">영상 종류</label><input type="text" name="영상_종류" value="{{ current_result.parsed_result.영상_종류|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="lg:col-span-2"><label class="block text-sm font-medium text-gray-500">검사 일시</label><input type="text" name="검사_일시" value="{{ current_result.parsed_result.검사_일시|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                        </div>
+                    </fieldset>
+                    
+                    {% with jlk_result=current_result.parsed_result.JLK_결과 %}
+                    <fieldset class="border-t border-slate-200 pt-4">
+                        <legend class="text-base font-semibold text-slate-800">JLK 결과</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Vessel)</label><input type="text" name="JLK_결과__Lesion_Location_Vessel_territory" value="{{ jlk_result.Lesion_Location_Vessel_territory|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Anatomic)</label><input type="text" name="JLK_결과__Lesion_Location_Anatomic_location" value="{{ jlk_result.Lesion_Location_Anatomic_location|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">병변 위치 (Direction)</label><input type="text" name="JLK_결과__Lesion_Location_Direction" value="{{ jlk_result.Lesion_Location_Direction|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">정량적 결과</label><textarea name="JLK_결과__정량적_결과" rows="3" class="editable-field mt-1 block w-full p-2 border rounded-md">{{ jlk_result.정량적_결과|default_if_none:'' }}</textarea></div>
+                        </div>
+                    </fieldset>
+                    {% endwith %}
+
+                    <fieldset class="border-t border-slate-200 pt-4">
+                        <legend class="text-base font-semibold text-slate-800">종합적 결과</legend>
+                        <div class="mt-2">
+                            <textarea name="종합적_결과" rows="5" class="editable-field mt-1 block w-full p-2 border rounded-md">{{ current_result.parsed_result.종합적_결과|default_if_none:'' }}</textarea>
+                        </div>
+                    </fieldset>
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-end items-center mt-4 space-x-2">
+                    <button type="submit" formaction="{% url 'editor:delete_result' current_result.id %}" class="bg-red-600 text-white font-bold py-2 px-4 rounded-md" onclick="return confirm('정말로 삭제하시겠습니까?');">삭제</button>
+                    <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md">저장하기</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="flex items-center justify-center h-full text-slate-500">
+                <p>새로운 추론을 실행하거나, 오른쪽 목록에서 결과를 선택하세요.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="w-1/3 max-w-sm bg-white border-l h-full flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">추론 기록</h2>
+            <a href="{% url 'editor:main_editor' %}" class="bg-blue-100 text-blue-700 text-sm font-bold py-1 px-3 rounded-full hover:bg-blue-200">새 추론</a>
+        </div>
+        <ul class="overflow-y-auto flex-grow">
+            {% for result in all_results %}
+            <a href="{% url 'editor:editor_with_id' result.id %}" class="block">
+                <li class="p-4 border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
+                    <p class="font-semibold text-slate-700 truncate">{{ result.prompt|truncatewords:10 }}</p>
+                    <p class="text-sm text-slate-500">{{ result.created_at|date:"Y.m.d H:i" }}</p>
+                </li>
+            </a>
+            {% empty %}
+            <li class="p-4 text-center text-slate-500">기록이 없습니다.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Image Zoom Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center p-4 z-50">
+    <img id="modal-image" src="" alt="Zoomed Image" class="max-w-full max-h-full rounded-lg">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 솔루션 선택 UI 로직
+        const solutionSelect = document.getElementById('solution');
+        const defaultArea = document.getElementById('default-prompt-area');
+        const strokeArea = document.getElementById('stroke-analysis-area');
+        
+        solutionSelect.addEventListener('change', function() {
+            const selectedSolutionName = this.value;
+            if (selectedSolutionName === 'default') {
+                defaultArea.classList.remove('hidden');
+                strokeArea.classList.add('hidden');
+            } else {
+                defaultArea.classList.add('hidden');
+                strokeArea.classList.remove('hidden');
+            }
+        });
+        solutionSelect.dispatchEvent(new Event('change'));
+
+        // 수정된 필드 빨간색으로 표시하는 로직
+        const editableFields = document.querySelectorAll('.editable-field');
+        editableFields.forEach(field => {
+            field.dataset.originalValue = field.value;
+            field.addEventListener('input', function() {
+                if (this.value !== this.dataset.originalValue) {
+                    this.classList.add('text-red-600', 'font-semibold');
+                } else {
+                    this.classList.remove('text-red-600', 'font-semibold');
+                }
+            });
+        });
+        
+        // 이미지 확대/축소 로직
+        const modal = document.getElementById('image-modal');
+        const modalImg = document.getElementById('modal-image');
+        document.querySelectorAll('.zoomable-image').forEach(image => {
+            image.addEventListener('click', function() {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                modalImg.src = this.src;
+                setTimeout(() => { modal.classList.add('opacity-100'); modalImg.classList.add('visible'); }, 10);
+            });
+        });
+
+        modal.addEventListener('click', function() {
+            modal.classList.remove('opacity-100');
+            modalImg.classList.remove('visible');
+            setTimeout(() => { 
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        });
+    });
+</script>
+</body>
+</html>
