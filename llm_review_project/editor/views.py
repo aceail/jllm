@@ -3,17 +3,8 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import InferenceResult, InferenceImage
-
-USER_COLORS = [
-    "text-red-600",
-    "text-blue-600",
-    "text-green-600",
-    "text-purple-600",
-    "text-orange-600",
-]
-
-def get_user_color(username: str) -> str:
-    return USER_COLORS[hash(username) % len(USER_COLORS)]
+from .utils import get_user_color
+from .models import EditHistory
 
 
 
@@ -222,6 +213,13 @@ def create_inference(request):
                 last_modified_by=request.user,
             )
 
+            # record the initial state for highlighting history
+            EditHistory.objects.create(
+                result=new_result,
+                editor=request.user,
+                edited_data=parsed_data,
+            )
+
             for uploaded_file in request.FILES.getlist('images'):
                 InferenceImage.objects.create(inference_result=new_result, image=uploaded_file)
 
@@ -255,6 +253,12 @@ def save_edit(request, result_id):
             result.patient_id = request.POST.get("환자ID", result.patient_id)
             result.last_modified_by = request.user
             result.save()
+
+            EditHistory.objects.create(
+                result=result,
+                editor=request.user,
+                edited_data=result.parsed_result,
+            )
         except (ValueError, TypeError) as e:
             print(f"Error reconstructing JSON: {e}")
 
