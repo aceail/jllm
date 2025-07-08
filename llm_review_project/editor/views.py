@@ -221,7 +221,22 @@ def create_inference(request):
             )
 
             for uploaded_file in request.FILES.getlist('images'):
-                InferenceImage.objects.create(inference_result=new_result, image=uploaded_file)
+                if uploaded_file.name.lower().endswith('.dcm'):
+                    from .utils import dicom_to_png
+                    png_file = dicom_to_png(uploaded_file)
+                    if png_file:
+                        InferenceImage.objects.create(
+                            inference_result=new_result,
+                            image=png_file,
+                        )
+                    else:
+                        # fallback: skip the file if conversion fails
+                        continue
+                else:
+                    InferenceImage.objects.create(
+                        inference_result=new_result,
+                        image=uploaded_file,
+                    )
 
             return redirect('editor:editor_with_id', result_id=new_result.id)
         except Exception as e:
