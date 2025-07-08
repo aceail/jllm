@@ -93,7 +93,7 @@
                     </p>
                     {% if not current_result.edited_text|json_equal:current_result.original_text %}
                     <div class="mt-2 p-2 bg-slate-50 rounded">
-                        <pre class="whitespace-pre-wrap text-sm">{% diff_highlight current_result.edited_text current_result.original_text current_result.user_color %}</pre>
+                        <pre class="whitespace-pre-wrap text-sm">{% json_history_diff current_result %}</pre>
                     </div>
                     {% endif %}
 
