@@ -79,24 +79,59 @@ def json_equal(new_text, old_text=''):
     return new_normalized == old_normalized
 
 
-def _update_color_map(old, new, color, colors, path=""):
+def _init_tokens_map(data, tokens, path=""):
+    """Initialize token map with uncolored words from the first history entry."""
+    if isinstance(data, dict):
+        for k, v in data.items():
+            sub_path = f"{path}.{k}" if path else k
+            _init_tokens_map(v, tokens, sub_path)
+    elif isinstance(data, list):
+        for i, val in enumerate(data):
+            sub_path = f"{path}[{i}]"
+            _init_tokens_map(val, tokens, sub_path)
+    else:
+        tokens[path] = [(w, None) for w in str(data).split()]
+
+
+def _apply_word_diff(old_tokens, new_words, color):
+    """Return new tokens after applying a word-level diff."""
+    old_words = [w for w, _ in old_tokens]
+    diff = difflib.ndiff(old_words, new_words)
+    result = []
+    idx = 0
+    for part in diff:
+        code = part[:2]
+        word = part[2:]
+        if code == "  ":
+            result.append(old_tokens[idx])
+            idx += 1
+        elif code == "- ":
+            idx += 1
+        elif code == "+ ":
+            result.append((word, color))
+    return result
+
+
+def _apply_diff_map(old, new, color, tokens, path=""):
     if isinstance(new, dict):
         for k, v in new.items():
             sub_old = old.get(k, {}) if isinstance(old, dict) else {}
             sub_path = f"{path}.{k}" if path else k
-            _update_color_map(sub_old, v, color, colors, sub_path)
+            _apply_diff_map(sub_old, v, color, tokens, sub_path)
     elif isinstance(new, list):
         for i, val in enumerate(new):
             sub_old = old[i] if isinstance(old, list) and i < len(old) else {}
             sub_path = f"{path}[{i}]"
-            _update_color_map(sub_old, val, color, colors, sub_path)
+            _apply_diff_map(sub_old, val, color, tokens, sub_path)
     else:
         old_val = old if not isinstance(old, (dict, list)) else None
+        if path not in tokens:
+            tokens[path] = [(w, None) for w in str(old_val if old_val is not None else "").split()]
         if new != old_val:
-            colors[path] = color
+            tokens[path] = _apply_word_diff(tokens[path], str(new).split(), color)
 
 
-def _render_json(obj, colors, path="", indent=0):
+def _render_json(obj, tokens, path="", indent=0):
     space = " " * indent
     if isinstance(obj, dict):
         lines = ["{"]
@@ -104,43 +139,58 @@ def _render_json(obj, colors, path="", indent=0):
         for idx, key in enumerate(keys):
             val = obj[key]
             sub_path = f"{path}.{key}" if path else key
-            rendered = _render_json(val, colors, sub_path, indent + 2)
+            rendered = _render_json(val, tokens, sub_path, indent + 2)
             comma = "," if idx < len(keys) - 1 else ""
             lines.append(f"{space}  \"{escape(key)}\": {rendered}{comma}")
-        lines.append(f"{space}")
+        lines.append(f"{space}}}")
         return "\n".join(lines)
     elif isinstance(obj, list):
         lines = ["["]
         for idx, item in enumerate(obj):
             sub_path = f"{path}[{idx}]"
-            rendered = _render_json(item, colors, sub_path, indent + 2)
+            rendered = _render_json(item, tokens, sub_path, indent + 2)
             comma = "," if idx < len(obj) - 1 else ""
             lines.append(f"{space}  {rendered}{comma}")
         lines.append(f"{space}]")
         return "\n".join(lines)
     else:
-        color = colors.get(path)
-        value = json.dumps(obj, ensure_ascii=False)
-        if color:
-            return f'<span class="{color} diff-added">{escape(value)}</span>'
-        return escape(value)
+        token_list = tokens.get(path)
+        if token_list is None:
+            value = json.dumps(obj, ensure_ascii=False)
+            return escape(value)
+        pieces = []
+        for word, color in token_list:
+            if color:
+                pieces.append(f'<span class="{color} diff-added">{escape(word)}</span>')
+            else:
+                pieces.append(escape(word))
+        value_html = " ".join(pieces)
+        if isinstance(obj, str):
+            return f'"{value_html}"'
+        return value_html
 
 
 @register.simple_tag
 def json_history_diff(result):
-    """Render the parsed_result with values highlighted by the user who last changed each field."""
+    """Render ``parsed_result`` with word-level highlights for each editor."""
     if not result.parsed_result:
         return mark_safe(result.edited_text)
 
-    histories = result.history.all()
-    colors = {}
-    prev_data = {}
-    for hist in histories:
+    histories = list(result.history.all())
+    if not histories:
+        return mark_safe(result.edited_text)
+
+    tokens = {}
+    first_data = histories[0].edited_data or {}
+    _init_tokens_map(first_data, tokens)
+    prev_data = first_data
+
+    for hist in histories[1:]:
         color = get_user_color(hist.editor.username) if hist.editor else ""
         data = hist.edited_data or {}
-        _update_color_map(prev_data, data, color, colors)
+        _apply_diff_map(prev_data, data, color, tokens)
         prev_data = data
 
-    html = _render_json(result.parsed_result, colors)
+    html = _render_json(result.parsed_result, tokens)
     return mark_safe(html)
 
