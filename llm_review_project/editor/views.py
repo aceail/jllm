@@ -4,6 +4,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import InferenceResult, InferenceImage
 
+USER_COLORS = [
+    "text-red-600",
+    "text-blue-600",
+    "text-green-600",
+    "text-purple-600",
+    "text-orange-600",
+]
+
+def get_user_color(username: str) -> str:
+    return USER_COLORS[hash(username) % len(USER_COLORS)]
+
 
 
 VLLM_API_URL = "http://localhost:8001/v1/completions" 
@@ -128,11 +139,21 @@ def main_editor_view(request, result_id=None):
     current_result = None
     if result_id:
         current_result = get_object_or_404(InferenceResult, pk=result_id)
+
+    for res in all_results:
+        if res.last_modified_by:
+            res.user_color = get_user_color(res.last_modified_by.username)
+        else:
+            res.user_color = ''
+
+    if current_result and current_result.last_modified_by:
+        current_result.user_color = get_user_color(current_result.last_modified_by.username)
     
     context = {
         'all_results': all_results,
         'current_result': current_result,
-        'solutions_data': SOLUTIONS_DATA, 
+        'solutions_data': SOLUTIONS_DATA,
+        'user_color': get_user_color(request.user.username),
     }
     return render(request, 'editor/main_editor.html', context)
 
@@ -195,7 +216,10 @@ def create_inference(request):
                 prompt=db_prompt,
                 original_text=generated_text,
                 edited_text=generated_text,
-                parsed_result=parsed_data
+                parsed_result=parsed_data,
+                patient_id=request.POST.get('patient_id', ''),
+                solution_name=solution_name,
+                last_modified_by=request.user,
             )
 
             for uploaded_file in request.FILES.getlist('images'):
@@ -228,6 +252,8 @@ def save_edit(request, result_id):
             }
             result.parsed_result = clean_json_keys(updated_data)
             result.edited_text = json.dumps(updated_data, ensure_ascii=False, indent=2)
+            result.patient_id = request.POST.get("환자ID", result.patient_id)
+            result.last_modified_by = request.user
             result.save()
         except (ValueError, TypeError) as e:
             print(f"Error reconstructing JSON: {e}")
