@@ -1,7 +1,9 @@
 # llm_review_project/llm_review_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic.base import RedirectView # RedirectView를 임포트합니다.
+from django.views.generic.base import RedirectView  # RedirectView를 임포트합니다.
+from django.conf import settings
+from django.conf.urls.static import static
 # from . import views # home_view를 사용하지 않으므로 이 임포트 줄은 제거하거나 주석 처리할 수 있습니다.
 
 urlpatterns = [
@@ -11,3 +13,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/editor/', permanent=False), name='home'), # name='home'은 기존 next_page 등에 사용될 수 있어 유지합니다.
     path('editor/', include('editor.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
