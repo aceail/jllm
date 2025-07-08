@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zerkuw_idcm8hznf^l3u!4vxtks-!q5e*e+zf-f%=z-$!hal+)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -123,7 +124,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/' # 로그인 성공 후 홈('/')으로 이동
+LOGIN_REDIRECT_URL = '/editor/' # 로그인 성공 후 에디터 페이지로 이동
 LOGOUT_REDIRECT_URL = '/' # 로그아웃 성공 후 홈('/')으로 이동 (선택 사항)
 LOGIN_URL = '/accounts/login/' # 로그인 페이지 URL
 
