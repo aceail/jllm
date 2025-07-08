@@ -161,6 +161,16 @@ def create_inference(request):
         
         user_input_data = ""
         db_prompt = ""
+        uploaded_files = request.FILES.getlist('images')
+        converted_files = []
+        for f in uploaded_files:
+            if f.name.lower().endswith('.dcm'):
+                from .utils import dicom_to_png
+                png = dicom_to_png(f)
+                if png:
+                    converted_files.append(png)
+            else:
+                converted_files.append(f)
 
         if config_key == 'medical' and user_prompt_template:
             solution_data = SOLUTIONS_DATA.get(solution_name, {})
@@ -176,7 +186,7 @@ def create_inference(request):
                 age=request.POST.get('age', ''),
                 exam_time=request.POST.get('exam_time', ''),
                 ai_json=request.POST.get('ai_json_input', '{}'),
-                image_count=len(request.FILES.getlist('images'))
+                image_count=len(converted_files)
             )
             db_prompt = request.POST.get('ai_json_input', '상세 입력')
         else:
@@ -220,23 +230,12 @@ def create_inference(request):
                 edited_data=parsed_data,
             )
 
-            for uploaded_file in request.FILES.getlist('images'):
-                if uploaded_file.name.lower().endswith('.dcm'):
-                    from .utils import dicom_to_png
-                    png_file = dicom_to_png(uploaded_file)
-                    if png_file:
-                        InferenceImage.objects.create(
-                            inference_result=new_result,
-                            image=png_file,
-                        )
-                    else:
-                        # fallback: skip the file if conversion fails
-                        continue
-                else:
-                    InferenceImage.objects.create(
-                        inference_result=new_result,
-                        image=uploaded_file,
-                    )
+            for uploaded_file in converted_files:
+                InferenceImage.objects.create(
+                    inference_result=new_result,
+                    image=uploaded_file,
+                )
+
 
             return redirect('editor:editor_with_id', result_id=new_result.id)
         except Exception as e:

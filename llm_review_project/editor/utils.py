@@ -13,10 +13,13 @@ def get_user_color(username: str) -> str:
 
 
 def dicom_to_png(uploaded_file):
-    """Convert an uploaded DICOM file to a PNG SimpleUploadedFile.
 
-    The caller is responsible for ensuring ``pydicom`` and ``Pillow`` are
-    installed. If conversion fails, ``None`` is returned.
+    """Convert an uploaded DICOM file to a PNG ``SimpleUploadedFile``.
+
+    This helper is used when a ``.dcm`` file is uploaded so the image can be
+    stored and displayed like any other attachment.  The caller is responsible
+    for ensuring ``pydicom`` and ``Pillow`` are installed. If conversion fails,
+    ``None`` is returned.
     """
     try:
         import io
