@@ -1,2 +1,31 @@
 *.pyc
 __pycache__
+.cache
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+*.pyo
+
+# 환경/IDE 설정
+.env
+.venv
+.idea/
+.vscode/
+*.swp
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# DB나 로그
+*.sqlite3
+*.log
+
+# 기타 빌드/배포 산출물
+build/
+dist/
+*.egg-info/
+*.bak
