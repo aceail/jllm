@@ -13,7 +13,6 @@ def diff_highlight(new_text, old_text='', color_class='text-red-600'):
     converting JSON to strings. To avoid false highlights, compare the two
     strings after removing all whitespace characters. If they match, return
     the new text without any highlighting.
-    """
 
     if not old_text:
 
