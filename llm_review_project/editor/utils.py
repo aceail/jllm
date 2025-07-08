@@ -32,12 +32,14 @@ def dicom_to_png(uploaded_file):
 
         ds = pydicom.dcmread(uploaded_file, force=True)
 
+
         if "PixelData" not in ds:
             raise ValueError("No pixel data found")
 
         pixel_array = ds.pixel_array
         if pixel_array.ndim > 2:
             pixel_array = pixel_array[0]
+
 
         # apply windowing if available
         try:
@@ -46,6 +48,7 @@ def dicom_to_png(uploaded_file):
             pass
 
         pixel_array = pixel_array.astype("float32")
+
         pixel_array -= pixel_array.min()
         if pixel_array.max() > 0:
             pixel_array = pixel_array / pixel_array.max() * 255.0
