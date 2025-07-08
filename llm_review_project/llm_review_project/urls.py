@@ -2,13 +2,14 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from .views import CustomLogoutView, home_view # home_view를 임포트합니다.
+from .views import CustomLogoutView, CustomLoginView, home_view # home_view를 임포트합니다.
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
 
     # --- 루트 URL 패턴 추가 ---
