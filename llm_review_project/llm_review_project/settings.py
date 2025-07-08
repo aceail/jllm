@@ -127,3 +127,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_REDIRECT_URL = '/' # 메인 페이지로 이동
+LOGIN_URL = '/accounts/login/' # 이 줄을 추가하세요.
