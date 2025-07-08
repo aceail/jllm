@@ -82,7 +82,13 @@
                 {% csrf_token %}
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-slate-800">결과 보기 및 수정 (ID: {{ current_result.id }})</h2>
-                    <p class="text-sm text-slate-500 mt-1"><strong>입력 요약:</strong> {{ current_result.prompt|truncatewords:20 }}</p>
+                    <p class="text-sm text-slate-500 mt-1">
+                        <strong>환자 ID:</strong> {{ current_result.patient_id }}
+                        <strong class="ml-4">솔루션:</strong> {{ current_result.solution_name }}
+                        {% if current_result.last_modified_by %}
+                        <span class="ml-4"><strong>수정자:</strong> {{ current_result.last_modified_by.username }}</span>
+                        {% endif %}
+                    </p>
                 </div>
                 
                 {% if current_result.images.all %}
@@ -166,8 +172,13 @@
             {% for result in all_results %}
             <a href="{% url 'editor:editor_with_id' result.id %}" class="block">
                 <li class="p-4 border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
-                    <p class="font-semibold text-slate-700 truncate">{{ result.prompt|truncatewords:10 }}</p>
-                    <p class="text-sm text-slate-500">{{ result.created_at|date:"Y.m.d H:i" }}</p>
+                    <p class="font-semibold text-slate-700 truncate">{{ result.patient_id }} - {{ result.solution_name }}</p>
+                    <p class="text-sm text-slate-500">
+                        {{ result.created_at|date:"Y.m.d H:i" }}
+                        {% if result.last_modified_by %}
+                            · {{ result.last_modified_by.username }}
+                        {% endif %}
+                    </p>
                 </li>
             </a>
             {% empty %}
@@ -201,15 +212,16 @@
         });
         solutionSelect.dispatchEvent(new Event('change'));
 
-        // 수정된 필드 빨간색으로 표시하는 로직
+        // 수정된 필드 색상 표시 로직
+        const userColor = "{{ user_color }}";
         const editableFields = document.querySelectorAll('.editable-field');
         editableFields.forEach(field => {
             field.dataset.originalValue = field.value;
             field.addEventListener('input', function() {
                 if (this.value !== this.dataset.originalValue) {
-                    this.classList.add('text-red-600', 'font-semibold');
+                    this.classList.add(userColor, 'font-semibold');
                 } else {
-                    this.classList.remove('text-red-600', 'font-semibold');
+                    this.classList.remove(userColor, 'font-semibold');
                 }
             });
         });

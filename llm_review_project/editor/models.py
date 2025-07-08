@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 class InferenceResult(models.Model):
     prompt = models.TextField("프롬프트 요약")
@@ -7,6 +8,16 @@ class InferenceResult(models.Model):
     edited_text = models.TextField("수정된 텍스트 (Raw Text)", blank=True)
     # 파싱된 JSON 결과를 저장할 필드 추가
     parsed_result = models.JSONField("파싱된/수정된 결과", null=True, blank=True)
+    patient_id = models.CharField("환자ID", max_length=100, blank=True)
+    solution_name = models.CharField("솔루션 이름", max_length=100, blank=True)
+    last_modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="마지막 수정자",
+        related_name="modified_results",
+    )
     created_at = models.DateTimeField("생성 시각", default=timezone.now)
 
     def __str__(self):
