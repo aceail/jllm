@@ -1,6 +1,7 @@
 import requests
 import json
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from .models import InferenceResult, InferenceImage
 
 
@@ -121,6 +122,7 @@ def parse_json_from_string(text):
     except (json.JSONDecodeError, IndexError, AttributeError):
         return None
 
+@login_required
 def main_editor_view(request, result_id=None):
     all_results = InferenceResult.objects.order_by('-created_at')
     current_result = None
@@ -134,6 +136,7 @@ def main_editor_view(request, result_id=None):
     }
     return render(request, 'editor/main_editor.html', context)
 
+@login_required
 def create_inference(request):
     if request.method == 'POST':
         solution_name = request.POST.get('solution', 'default')
@@ -204,6 +207,7 @@ def create_inference(request):
             return redirect('editor:main_editor')
     return redirect('editor:main_editor')
 
+@login_required
 def save_edit(request, result_id):
     result = get_object_or_404(InferenceResult, pk=result_id)
     if request.method == 'POST':
@@ -230,6 +234,7 @@ def save_edit(request, result_id):
 
     return redirect('editor:editor_with_id', result_id=result_id)
 
+@login_required
 def delete_result(request, result_id):
     result = get_object_or_404(InferenceResult, pk=result_id)
     if request.method == 'POST':
