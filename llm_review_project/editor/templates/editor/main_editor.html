@@ -91,7 +91,7 @@
                             <span class="ml-4"><strong>수정자:</strong> <span class="{{ current_result.user_color }}">{{ current_result.last_modified_by.username }}</span></span>
                         {% endif %}
                     </p>
-                    {% if current_result.edited_text != current_result.original_text %}
+                    {% if not current_result.edited_text|json_equal:current_result.original_text %}
                     <div class="mt-2 p-2 bg-slate-50 rounded">
                         <pre class="whitespace-pre-wrap text-sm">{% diff_highlight current_result.edited_text current_result.original_text current_result.user_color %}</pre>
                     </div>
