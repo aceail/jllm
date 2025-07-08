@@ -21,6 +21,16 @@ class CustomLoginView(LoginView):
         return reverse_lazy('home')
 
 
+# --- 로그인 뷰 추가: 이미 로그인된 사용자는 홈으로 리다이렉트 ---
+class CustomLoginView(LoginView):
+    """사용자 로그인을 처리하는 뷰."""
+
+    redirect_authenticated_user = True
+    template_name = 'registration/login.html'
+
+    def get_success_url(self):
+        return reverse_lazy('home')
+
 # --- 새로운 뷰 추가: 홈페이지 뷰 ---
 def home_view(request):
     """

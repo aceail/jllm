@@ -4,7 +4,6 @@ from django.contrib import admin
 from django.urls import path, include
 from .views import CustomLogoutView, home_view # home_view를 임포트합니다.
 from .views import CustomLogoutView, CustomLoginView, home_view # home_view를 임포트합니다.
-
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -14,7 +13,7 @@ urlpatterns = [
     path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # --- 루트 URL 패턴 추가 ---
+    # --- 루트 URL 패턴 추가 --
     path('', home_view, name='home'), # 이 줄을 추가합니다.
     # --- 여기까지 루트 URL 패턴 추가 ---
 
