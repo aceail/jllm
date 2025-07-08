@@ -236,6 +236,7 @@ def create_inference(request):
                     image=uploaded_file,
                 )
 
+
             return redirect('editor:editor_with_id', result_id=new_result.id)
         except Exception as e:
             print(f"An error occurred: {e}")

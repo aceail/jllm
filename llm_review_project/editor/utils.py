@@ -13,6 +13,7 @@ def get_user_color(username: str) -> str:
 
 
 def dicom_to_png(uploaded_file):
+
     """Convert an uploaded DICOM file to a PNG ``SimpleUploadedFile``.
 
     This helper is used when a ``.dcm`` file is uploaded so the image can be
