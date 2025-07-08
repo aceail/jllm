@@ -170,8 +170,13 @@
 <div class="w-1/3 max-w-sm bg-white border-l h-full flex flex-col flex-shrink-0">
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-xl font-bold text-slate-800">추론 기록</h2>
-            <div class="flex items-center space-x-2"> {# 이 div를 추가하여 새 추론과 로그아웃 버튼을 그룹화합니다. #}
+            <div class="flex items-center space-x-2"> {# 새 추론, 엑셀 업로드, 로그아웃 버튼 #}
                 <a href="{% url 'editor:main_editor' %}" class="bg-blue-100 text-blue-700 text-sm font-bold py-1 px-3 rounded-full hover:bg-blue-200">새 추론</a>
+                <form id="excel-upload-form" action="{% url 'editor:upload_excel' %}" method="post" enctype="multipart/form-data" class="inline">
+                    {% csrf_token %}
+                    <input id="excel-file-input" type="file" name="excel_file" accept=".xls,.xlsx" class="hidden">
+                    <label for="excel-file-input" class="bg-green-100 cursor-pointer text-green-700 text-sm font-bold py-1 px-3 rounded-full hover:bg-green-200">엑셀 업로드</label>
+                </form>
                 {% if user.is_authenticated %}
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
@@ -260,11 +265,21 @@
         modal.addEventListener('click', function() {
             modal.classList.remove('opacity-100');
             modalImg.classList.remove('visible');
-            setTimeout(() => { 
+            setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 300);
         });
+
+        // 자동 엑셀 업로드
+        const excelInput = document.getElementById('excel-file-input');
+        if (excelInput) {
+            excelInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    document.getElementById('excel-upload-form').submit();
+                }
+            });
+        }
     });
 </script>
 </body>
