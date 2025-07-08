@@ -28,6 +28,13 @@ def diff_highlight(new_text, old_text):
         if code == '+ ':
 
             pieces.append(f'<span class="{color_class} diff-added">{text}</span>')
+        elif code == '  ':
+            pieces.append(text)
+        # removed words are skipped
+
+    return mark_safe(' '.join(pieces))
+
+            pieces.append(f'<span class="{color_class} diff-added">{text}</span>')
         elif code == '- ':
             continue
         else:

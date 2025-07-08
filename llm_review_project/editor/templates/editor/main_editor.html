@@ -96,9 +96,11 @@
                         <pre class="whitespace-pre-wrap text-sm">{% diff_highlight current_result.edited_text current_result.original_text current_result.user_color %}</pre>
                     </div>
                     {% endif %}
+
                         <span class="ml-4"><strong>수정자:</strong> {{ current_result.last_modified_by.username }}</span>
                         {% endif %}
                     </p>
+
                 </div>
                 
                 {% if current_result.images.all %}
@@ -187,7 +189,9 @@
                         {{ result.created_at|date:"Y.m.d H:i" }}
                         {% if result.last_modified_by %}
                             · <span class="{{ result.user_color }}">{{ result.last_modified_by.username }}</span>
+
                             · {{ result.last_modified_by.username }}
+
                         {% endif %}
                     </p>
                 </li>
@@ -224,6 +228,7 @@
         solutionSelect.dispatchEvent(new Event('change'));
 
 
+
         // 수정된 필드 색상 표시 로직
         const userColor = "{{ user_color }}";
         const editableFields = document.querySelectorAll('.editable-field');
@@ -237,6 +242,7 @@
                 }
             });
         });
+
 
         
         // 이미지 확대/축소 로직
