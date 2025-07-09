@@ -36,3 +36,8 @@ llm_review_project/editor/__pycache__/views.cpython-310.pyc
 llm_review_project/editor/__pycache__/views.cpython-310.pyc
 *.sqlite3
 *.png
+
+# Local DB
+db.sqlite3
+# Swap files
+.gitignore.swp

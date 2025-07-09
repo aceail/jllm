@@ -1,0 +1,7 @@
+Django>=5.2
+pandas
+numpy
+requests
+pillow
+pydicom
+python-dotenv
