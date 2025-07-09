@@ -109,6 +109,7 @@ PROMPT_CONFIG = {
 ## Output Format
 
 출력은 반드시 아래와 같은 JSON 형식으로 하며, 모든 필드는 누락 없이 채워야 합니다.
+```json
 {
   "환자ID": "문자열",
   "성별": "문자열",
@@ -123,7 +124,7 @@ PROMPT_CONFIG = {
   },
   "종합적 결과": "문자열" // 임상·병태생리학 해석, AI 비판, 최종 권고 포함
 }
-
+```
 ※ **추가 주의사항:**
 -   해부학적 용어 또는 임상 용어는 **영어 표준 표기**로 작성하세요.
 -   모든 필드는 반드시 채워야 하며, 누락이나 자료형 오류 발생 시 "알 수 없음" 또는 관련 오류 메시지를 명시하고 JSON 전체의 형태는 반드시 유지해야 합니다.
@@ -259,7 +260,7 @@ def perform_inference(user, solution_name, patient_id='', sex='', age='', exam_t
         "model": "/home/yjpark/data_72/model/gemma-merged-model",
         "prompt": final_prompt,
         "max_tokens": 2048,
-        "temperature": 0.7,
+        "temperature": 1,
         "stop": ["<end_of_turn>", "[사용자 요청]"],
         "echo": False,
     }
