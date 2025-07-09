@@ -196,26 +196,34 @@
         </div>
 
 
-        <ul class="overflow-y-auto flex-grow">
-            {% for result in all_results %}
-            <a href="{% url 'editor:editor_with_id' result.id %}" class="block">
-                <li class="p-4 border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
-                    <p class="font-semibold text-slate-700 truncate">{{ result.id }} - {{ result.solution_name }} ({{ result.patient_id }})</p>
-                    <p class="text-sm text-slate-500">
-                        {{ result.created_at|date:"Y.m.d H:i" }}
-                        {% if result.editors %}
-                            ·
-                            {% for ed in result.editors %}
-                                <span class="{{ ed.color }}">{{ ed.name }}</span>{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </p>
+        <form id="delete-selected-form" method="post" action="{% url 'editor:delete_selected' %}" class="flex flex-col flex-grow">
+            {% csrf_token %}
+            <div id="selected-actions" class="hidden sticky top-0 bg-white z-10 border-b p-2 flex justify-between items-center">
+                <button type="button" id="select-all" class="text-sm bg-gray-100 px-2 py-1 rounded">전체 선택</button>
+                <button type="submit" class="text-sm bg-red-600 text-white px-2 py-1 rounded">선택 삭제</button>
+            </div>
+            <ul id="history-list" class="overflow-y-auto flex-grow max-h-[36rem]">
+                {% for result in all_results %}
+                <li class="relative border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
+                    <input type="checkbox" class="select-checkbox absolute left-2 top-1/2 -translate-y-1/2" name="selected_ids" value="{{ result.id }}" />
+                    <a href="{% url 'editor:editor_with_id' result.id %}" class="block pl-8 p-4 history-link">
+                        <p class="font-semibold text-slate-700 truncate">{{ result.id }} - {{ result.solution_name }} ({{ result.patient_id }})</p>
+                        <p class="text-sm text-slate-500">
+                            {{ result.created_at|date:"Y.m.d H:i" }}
+                            {% if result.editors %}
+                                ·
+                                {% for ed in result.editors %}
+                                    <span class="{{ ed.color }}">{{ ed.name }}</span>{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </p>
+                    </a>
                 </li>
-            </a>
-            {% empty %}
-            <li class="p-4 text-center text-slate-500">기록이 없습니다.</li>
-            {% endfor %}
-        </ul>
+                {% empty %}
+                <li class="p-4 text-center text-slate-500">기록이 없습니다.</li>
+                {% endfor %}
+            </ul>
+        </form>
     </div>
 </div>
 
@@ -280,6 +288,38 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 300);
+        });
+
+        // 선택 삭제 로직
+        const historyList = document.getElementById('history-list');
+        const checkboxes = document.querySelectorAll('.select-checkbox');
+        const actions = document.getElementById('selected-actions');
+        const selectAllBtn = document.getElementById('select-all');
+
+        function updateActions() {
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            actions.classList.toggle('hidden', !anyChecked);
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('click', function(e) {
+                e.stopPropagation();
+                updateActions();
+            });
+        });
+
+        selectAllBtn.addEventListener('click', function() {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => { cb.checked = !allChecked; });
+            updateActions();
+        });
+
+        // 스크롤 위치 유지
+        historyList.scrollTop = localStorage.getItem('historyScroll') || 0;
+        document.querySelectorAll('.history-link').forEach(link => {
+            link.addEventListener('click', function() {
+                localStorage.setItem('historyScroll', historyList.scrollTop);
+            });
         });
 
         // 자동 엑셀 업로드
