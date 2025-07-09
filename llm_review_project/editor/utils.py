@@ -157,22 +157,55 @@ def clean_json_keys(obj):
         return obj
 
 
-def parse_json_from_string(text):
-    try:
-        if '```json' in text:
-            json_str = text.split('```json')[1].split('```')[0].strip()
-        else:
-            json_start = text.find('{')
-            json_end = text.rfind('}') + 1
-            if json_start == -1 or json_end == 0:
-                return None
-            json_str = text[json_start:json_end]
+def fix_json_string(json_str: str) -> str:
+    """Attempt to repair common JSON formatting issues."""
+    import re
 
+    # Remove trailing commas before closing brackets
+    json_str = re.sub(r",\s*(?=[}\]])", "", json_str)
+
+    # Convert single quotes to double quotes for keys and string values
+    json_str = re.sub(r"'([^']*)'\s*:\s*", r'"\1": ', json_str)
+    json_str = re.sub(r":\s*'([^']*)'", r': "\1"', json_str)
+
+    # Balance braces and brackets if counts mismatch
+    open_braces = json_str.count('{')
+    close_braces = json_str.count('}')
+    if close_braces < open_braces:
+        json_str += '}' * (open_braces - close_braces)
+
+    open_brackets = json_str.count('[')
+    close_brackets = json_str.count(']')
+    if close_brackets < open_brackets:
+        json_str += ']' * (open_brackets - close_brackets)
+
+    return json_str
+
+
+def parse_json_from_string(text):
+    json_str = ""
+    if '```json' in text:
+        try:
+            json_str = text.split('```json')[1].split('```')[0].strip()
+        except Exception:
+            json_str = text
+    else:
+        json_start = text.find('{')
+        json_end = text.rfind('}') + 1
+        if json_start == -1 or json_end == 0:
+            return None
+        json_str = text[json_start:json_end]
+
+    try:
         data = json.loads(json_str)
-        cleaned_data = clean_json_keys(data)
-        return cleaned_data
     except (json.JSONDecodeError, IndexError, AttributeError):
-        return None
+        fixed = fix_json_string(json_str)
+        try:
+            data = json.loads(fixed)
+        except Exception:
+            return None
+    cleaned_data = clean_json_keys(data)
+    return cleaned_data
 
 
 def perform_inference(user, solution_name, patient_id='', sex='', age='', exam_time='', ai_json='{}', images=None):
