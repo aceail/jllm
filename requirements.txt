@@ -1,7 +1,7 @@
-Django>=5.2
+Django
 pandas
 numpy
-requests
-pillow
+Pillow
 pydicom
-python-dotenv
+requests
+openpyxl
