@@ -1,19 +1,32 @@
-# llm_review_project/llm_review_project/urls.py
 from django.contrib import admin
-from django.urls import path, include
-from django.views.generic.base import RedirectView  # RedirectView를 임포트합니다.
+from django.urls import path, include, re_path
+from django.views.generic.base import RedirectView
+from django.views import static as django_static
 from django.conf import settings
-from django.conf.urls.static import static
-# from . import views # home_view를 사용하지 않으므로 이 임포트 줄은 제거하거나 주석 처리할 수 있습니다.
+import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    # 루트 URL을 /editor/로 리디렉션합니다.
-    path('', RedirectView.as_view(url='/editor/', permanent=False), name='home'), # name='home'은 기존 next_page 등에 사용될 수 있어 유지합니다.
+    path('', RedirectView.as_view(url='/editor/', permanent=False), name='home'),
     path('editor/', include('editor.urls')),
 ]
 
+# DEBUG일 때 media 경로를 디버그 로그와 함께 처리
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    def debug_serve(request, path, document_root=None, show_indexes=False):
+        full_path = os.path.join(document_root, path)
+        print("=" * 60)
+        print(f"요청 URL Path: {path}")
+        print(f"MEDIA_ROOT: {document_root}")
+        print(f"실제 찾는 경로: {full_path}")
+        print("=" * 60)
+        return django_static.serve(request, path, document_root=document_root, show_indexes=show_indexes)
 
+    urlpatterns += [
+        re_path(
+            r'^media/(?P<path>.*)$',
+            debug_serve,
+            {'document_root': settings.MEDIA_ROOT},
+        ),
+    ]
