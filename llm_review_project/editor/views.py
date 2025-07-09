@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.files.uploadedfile import SimpleUploadedFile
 import pandas as pd
-
+import ast
 from .models import InferenceResult, EditHistory
 from .utils import (
     get_user_color,
@@ -120,15 +120,14 @@ def upload_excel(request):
     """Handle Excel uploads for batch inference sequentially."""
     if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
-        for chunk in pd.read_excel(excel_file, chunksize=1):
-            row = chunk.iloc[0]
-            solution_name = row.get('솔루샨 종류', 'default')
+        for _, row in pd.read_excel(excel_file).iterrows():
+            solution_name = row.get('솔루션 종류', 'default')
             patient_id = row.get('환자 ID', '')
             sex = row.get('성별', '')
             age = row.get('나이', '')
             exam_time = row.get('검사 일시', '')
-            ai_json = row.get('AI 분석 결과 (JSON)', '{}')
-            path_list = str(row.get('파일경로 list', '')).split(';')
+            ai_json = row.get('AI 분석 결과', '{}')
+            path_list = ast.literal_eval(row.get('파일경로', ''))
 
             images = []
             for p in path_list:
