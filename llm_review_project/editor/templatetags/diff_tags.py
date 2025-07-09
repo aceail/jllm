@@ -14,11 +14,6 @@ USER_COLORS = [
 from ..utils import get_user_color
 
 
-def get_user_color(username: str) -> str:
-    """Return a stable color class for the given username."""
-    return USER_COLORS[hash(username) % len(USER_COLORS)]
-
-
 register = template.Library()
 
 @register.simple_tag

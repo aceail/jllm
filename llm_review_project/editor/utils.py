@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import numpy as np
 USER_COLORS = [
@@ -59,7 +60,7 @@ def dicom_to_png(uploaded_file):
 # Prompt configuration and helper functions shared by views and commands
 # ---------------------------------------------------------------------------
 
-VLLM_API_URL = "http://localhost:8001/v1/completions"
+VLLM_API_URL = os.getenv("VLLM_API_URL", "http://localhost:8001/v1/completions")
 
 SOLUTIONS_DATA = {
     "JLK-CMB": {"base": "GRE", "info": "열공 뇌경색 위치 및 부피 정량 분석 정보"},
