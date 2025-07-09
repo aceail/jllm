@@ -1,3 +1,11 @@
+# JLLM
+
+This repository contains the JLLM review project.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
 # LLM Review Project
 
 This repository contains a small Django web application used to review and edit inference results produced by a large language model. It provides an interface to create inference requests, view JSON results and track edit history.
@@ -39,4 +47,3 @@ python manage.py runserver
 ```
 
 The application will be available at `http://127.0.0.1:8000/` by default.
-
