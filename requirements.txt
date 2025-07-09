@@ -1,0 +1,7 @@
+Django
+pandas
+numpy
+Pillow
+pydicom
+requests
+openpyxl
