@@ -182,6 +182,43 @@ def fix_json_string(json_str: str) -> str:
     return json_str
 
 
+EXPECTED_KEYS = [
+    "환자ID",
+    "성별",
+    "나이",
+    "영상 종류",
+    "검사 일시",
+    "Lesion Location (Vessel territory)",
+    "Lesion Location (Anatomic location)",
+    "Lesion Location (Direction)",
+    "정량적 결과",
+    "종합적 결과",
+]
+
+
+def parse_key_value_pairs(text: str):
+    """Fallback parser that extracts key/value pairs from free-form text."""
+    import re
+
+    pattern = r"(" + "|".join(re.escape(k) for k in EXPECTED_KEYS) + r")\s*[:：]"
+    tokens = re.split(pattern, text)
+    if len(tokens) < 2:
+        return None
+
+    result = {}
+    for i in range(1, len(tokens), 2):
+        key = tokens[i]
+        value = tokens[i + 1].strip()
+        result[key] = value
+
+    if "나이" in result:
+        age_match = re.search(r"\d+", result["나이"])
+        if age_match:
+            result["나이"] = int(age_match.group())
+
+    return result
+
+
 def parse_json_from_string(text):
     json_str = ""
     if '```json' in text:
@@ -203,7 +240,9 @@ def parse_json_from_string(text):
         try:
             data = json.loads(fixed)
         except Exception:
-            return None
+            data = parse_key_value_pairs(text)
+            if data is None:
+                return None
     cleaned_data = clean_json_keys(data)
     return cleaned_data
 
