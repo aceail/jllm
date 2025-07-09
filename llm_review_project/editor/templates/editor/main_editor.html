@@ -202,7 +202,7 @@
                 <button type="button" id="select-all" class="text-sm bg-gray-100 px-2 py-1 rounded">전체 선택</button>
                 <button type="submit" class="text-sm bg-red-600 text-white px-2 py-1 rounded">선택 삭제</button>
             </div>
-            <ul id="history-list" class="overflow-y-auto flex-grow">
+            <ul id="history-list" class="overflow-y-auto flex-grow max-h-[36rem]">
                 {% for result in all_results %}
                 <li class="relative border-b hover:bg-slate-50 {% if current_result.id == result.id %}bg-blue-100{% endif %}">
                     <input type="checkbox" class="select-checkbox absolute left-2 top-1/2 -translate-y-1/2" name="selected_ids" value="{{ result.id }}" />
