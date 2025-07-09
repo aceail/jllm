@@ -83,12 +83,10 @@ def save_edit(request, result_id):
                 "나이": int(request.POST.get("나이")),
                 "영상_종류": request.POST.get("영상_종류"),
                 "검사_일시": request.POST.get("검사_일시"),
-                "JLK_결과": {
-                    "Lesion_Location_Vessel_territory": request.POST.get("JLK_결과__Lesion_Location_Vessel_territory"),
-                    "Lesion_Location_Anatomic_location": request.POST.get("JLK_결과__Lesion_Location_Anatomic_location"),
-                    "Lesion_Location_Direction": request.POST.get("JLK_결과__Lesion_Location_Direction"),
-                    "정량적_결과": request.POST.get("JLK_결과__정량적_결과"),
-                },
+                "Lesion_Location_Vessel_territory": request.POST.get("Lesion_Location_Vessel_territory"),
+                "Lesion_Location_Anatomic_location": request.POST.get("Lesion_Location_Anatomic_location"),
+                "Lesion_Location_Direction": request.POST.get("Lesion_Location_Direction"),
+                "정량적_결과": request.POST.get("정량적_결과"),
                 "종합적_결과": request.POST.get("종합적_결과")
             }
             result.parsed_result = clean_json_keys(updated_data)

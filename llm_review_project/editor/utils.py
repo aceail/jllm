@@ -117,12 +117,10 @@ PROMPT_CONFIG = {
   "나이": 숫자,
   "영상 종류": "문자열", // 예: "NCCT, CTA, CTP", "DWI" 등
   "검사 일시": "문자열", // ISO 8601 포맷 (예: "2024-06-16T14:23:00")
-  "JLK 결과": {
-    "Lesion Location (Vessel territory)": "문자열", // 예: "Right MCA territory (superior division), left PCA territory 등" - 방향 포함
-    "Lesion Location (Anatomic location)": "문자열", // 예: "Right insular cortex and adjacent parietal lobe"
-    "Lesion Location (Direction)": "문자열", // 예: "Right, superior, medial, bilateral 등" - 공간적 방향
-    "정량적 결과": "문자열", // 반드시 {병변 위치(혈관구역, 해부학구역, 방향), 병변 크기(정량값), 양측성, 분포 양상} 모두 포함하여, 전문의 시각에서 상세 기술
-  },
+  "Lesion Location (Vessel territory)": "문자열", // 예: "Right MCA territory (superior division), left PCA territory 등" - 방향 포함
+  "Lesion Location (Anatomic location)": "문자열", // 예: "Right insular cortex and adjacent parietal lobe"
+  "Lesion Location (Direction)": "문자열", // 예: "Right, superior, medial, bilateral 등" - 공간적 방향
+  "정량적 결과": "문자열", // 반드시 {병변 위치(혈관구역, 해부학구역, 방향), 병변 크기(정량값), 양측성, 분포 양상} 모두 포함하여, 전문의 시각에서 상세 기술
   "종합적 결과": "문자열" // 임상·병태생리학 해석, AI 비판, 최종 권고 포함
 }
 ```
