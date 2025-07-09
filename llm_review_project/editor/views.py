@@ -116,6 +116,15 @@ def delete_result(request, result_id):
 
 
 @login_required
+def delete_selected(request):
+    if request.method == 'POST':
+        ids = request.POST.getlist('selected_ids')
+        if ids:
+            InferenceResult.objects.filter(id__in=ids).delete()
+    return redirect('editor:main_editor')
+
+
+@login_required
 def upload_excel(request):
     """Handle Excel uploads for batch inference sequentially."""
     if request.method == 'POST' and request.FILES.get('excel_file'):
