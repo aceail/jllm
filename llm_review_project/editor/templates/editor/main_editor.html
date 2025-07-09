@@ -132,17 +132,15 @@
                         </div>
                     </fieldset>
                     
-                    {% with jlk_result=current_result.parsed_result.JLK_결과 %}
                     <fieldset class="border-t border-slate-200 pt-4">
                         <legend class="text-base font-semibold text-slate-800">JLK 결과</legend>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Vessel)</label><input type="text" name="JLK_결과__Lesion_Location_Vessel_territory" value="{{ jlk_result.Lesion_Location_Vessel_territory|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
-                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Anatomic)</label><input type="text" name="JLK_결과__Lesion_Location_Anatomic_location" value="{{ jlk_result.Lesion_Location_Anatomic_location|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
-                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">병변 위치 (Direction)</label><input type="text" name="JLK_결과__Lesion_Location_Direction" value="{{ jlk_result.Lesion_Location_Direction|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
-                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">정량적 결과</label><textarea name="JLK_결과__정량적_결과" rows="3" class="editable-field mt-1 block w-full p-2 border rounded-md">{{ jlk_result.정량적_결과|default_if_none:'' }}</textarea></div>
+                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Vessel)</label><input type="text" name="Lesion_Location_Vessel_territory" value="{{ current_result.parsed_result.Lesion_Location_Vessel_territory|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div><label class="block text-sm font-medium text-gray-500">병변 위치 (Anatomic)</label><input type="text" name="Lesion_Location_Anatomic_location" value="{{ current_result.parsed_result.Lesion_Location_Anatomic_location|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">병변 위치 (Direction)</label><input type="text" name="Lesion_Location_Direction" value="{{ current_result.parsed_result.Lesion_Location_Direction|default_if_none:'' }}" class="editable-field mt-1 block w-full p-2 border rounded-md"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-500">정량적 결과</label><textarea name="정량적_결과" rows="3" class="editable-field mt-1 block w-full p-2 border rounded-md">{{ current_result.parsed_result.정량적_결과|default_if_none:'' }}</textarea></div>
                         </div>
                     </fieldset>
-                    {% endwith %}
 
                     <fieldset class="border-t border-slate-200 pt-4">
                         <legend class="text-base font-semibold text-slate-800">종합적 결과</legend>
