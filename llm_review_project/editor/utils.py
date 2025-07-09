@@ -219,14 +219,19 @@ def parse_key_value_pairs(text: str):
     return result
 
 
-def parse_json_from_string(text):
-    json_str = ""
-    if '```json' in text:
-        try:
-            json_str = text.split('```json')[1].split('```')[0].strip()
-        except Exception:
-            json_str = text
-    else:
+def _extract_json_block(text: str) -> str | None:
+    """Return JSON snippet inside a ```json code fence if present."""
+    import re
+
+    match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    return None
+
+
+def parse_json_from_string(text: str):
+    json_str = _extract_json_block(text)
+    if json_str is None:
         json_start = text.find('{')
         json_end = text.rfind('}') + 1
         if json_start == -1 or json_end == 0:
@@ -240,9 +245,19 @@ def parse_json_from_string(text):
         try:
             data = json.loads(fixed)
         except Exception:
-            data = parse_key_value_pairs(text)
+            # If parsing still fails, attempt again using the fenced block
+            alt_block = _extract_json_block(text)
+            if alt_block and alt_block != json_str:
+                try:
+                    data = json.loads(alt_block)
+                except Exception:
+                    data = None
+            else:
+                data = None
             if data is None:
-                return None
+                data = parse_key_value_pairs(text)
+                if data is None:
+                    return None
     cleaned_data = clean_json_keys(data)
     return cleaned_data
 
